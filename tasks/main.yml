@@ -1,0 +1,40 @@
+---
+# Ansible or BigSudo role to setup a systemd timer (improved cron)
+
+- name: Create service unit file
+  notify: Systemd reload
+  copy:
+    dest: /etc/systemd/system/{{ name }}.service
+    content: |
+      [Unit]
+      Description={{ description|default(name) }} unit
+
+      [Service]
+      ExecStart={{ cmd }}
+      Type=oneshot
+      StandardOutput=journal
+      {% if env is defined %}
+      {% for variable in env.items() %}
+      Environment={{ env }}
+      {% endfor %}
+      {% endif %}
+      {% if chdir is defined %}
+      WorkingDirectory={{ chdir|default('') }}
+      {% endif %}
+
+      [Install]
+      WantedBy=basic.target
+
+- name: Create timer unit file
+  notify: Systemd reload
+  copy:
+    dest: /etc/systemd/system/{{ name }}.timer
+    content: |
+      [Unit]
+      Description={{ description|default(name) }} timer
+
+      [Timer]
+      OnCalendar={{ oncalendar }}
+
+      [Install]
+      WantedBy=timers.target

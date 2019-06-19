@@ -1,0 +1,4 @@
+---
+dest: /etc/systemd/system
+environment: {}
+type: oneshot
