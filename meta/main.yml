@@ -1,5 +1,6 @@
 galaxy_info:
   author: James Pic
+  role_name: timer
   description: Ansible or BigSudo role to deploy a systemd unit
   company: YourLabs
   issue_tracker_url: https://yourlabs.io/oss/yourlabs.systemd
