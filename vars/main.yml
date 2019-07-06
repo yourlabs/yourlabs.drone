@@ -1,0 +1,10 @@
+---
+open: '{{ drone_open|default("false") }}'
+
+github_id: '{{ drone_github_id|default("") }}'
+github_secret: '{{ drone_github_secret|default("") }}'
+github_url: '{{ drone_github_url|default("https://github.com") }}'
+
+gitlab_id: '{{ drone_gitlab_id|default("") }}'
+gitlab_secret: '{{ drone_gitlab_secret|default("") }}'
+gitlab_url: '{{ drone_gitlab_url|default("https://gitlab.com") }}'

@@ -1,16 +1,7 @@
-yourlabs.timer
+yourlabs.drone
 ==============
 
-Example usage with bigsudo (for one-shot):
+Full one-command documented here, but `traefik_*` variables are not necessary
+if you have already executed yourlabs.traefik:
 
-    bigsudo yourlabs.timer name=your-backup cmd=/your/backup.sh oncalendar='*-*-* 00:00:00 Europe/Paris'
-
-Example usage in task:
-
-    - name: Setup backup cron
-      include_role: name=yourlabs.timer
-      vars:
-        name: '{{ project_instance }}-backup'
-        cmd: '{{ home }}/sh.yml backup'
-        chdir: '{{ home }}'
-        oncalendar: '*-*-* 23:00:00'
+    bigsudo yourlabs.drone github_id="<GhAppId>" github_secret="<GhAppSecret>" url=https://ci.example.com @ci.example.com --become -v traefik_domain=traefik.ci.example.com traefik_acme=prod traefik_email=you@example.com

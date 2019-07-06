@@ -1,40 +1,60 @@
 ---
-# Ansible or BigSudo role to setup a systemd timer (improved cron)
+# Ansible or BigSudo role to setup Drone-CI
+- name: Ensure traefik was setup once on this host
+  include_role: name=yourlabs.roleonce
+  vars:
+    rolenames: [yourlabs.traefik]
 
-- name: Create service unit file
-  notify: Systemd reload
-  copy:
-    dest: /etc/systemd/system/{{ name }}.service
-    content: |
-      [Unit]
-      Description={{ description|default(name) }} unit
+- name: Save facts for further runs
+  shell:
+    cmd: |
+      cat > /etc/ansible/facts.d/yourlabs_drone.fact << EOF
+      #!/bin/sh
+      echo '{
+        "drone_open": "{{ open }}",
+        "drone_github_id": "{{ github_id }}",
+        "drone_github_secret": "{{ github_secret }}",
+        "drone_github_url": "{{ github_url }}",
+        "drone_gitlab_id": "{{ gitlab_id }}",
+        "drone_gitlab_secret": "{{ gitlab_secret }}",
+        "drone_gitlab_url": "{{ gitlab_url }}",
+        "yourlabs_drone": "installed"
+      }'
+      EOF
 
-      [Service]
-      ExecStart={{ cmd }}
-      Type=oneshot
-      StandardOutput=journal
-      {% if env is defined %}
-      {% for variable in env.items() %}
-      Environment={{ env }}
-      {% endfor %}
-      {% endif %}
-      {% if chdir is defined %}
-      WorkingDirectory={{ chdir|default('') }}
-      {% endif %}
+- name: Make facts executable for Ansible
+  file: path=/etc/ansible/facts.d/yourlabs_drone.fact mode=0755
 
-      [Install]
-      WantedBy=basic.target
-
-- name: Create timer unit file
-  notify: Systemd reload
-  copy:
-    dest: /etc/systemd/system/{{ name }}.timer
-    content: |
-      [Unit]
-      Description={{ description|default(name) }} timer
-
-      [Timer]
-      OnCalendar={{ oncalendar }}
-
-      [Install]
-      WantedBy=timers.target
+- name: Start docker instance
+  docker_container:
+    name: drone
+    image: drone/drone:1
+    restart: true
+    restart_policy: unless-stopped
+    log_driver: journald
+    exposed_ports: 80
+    networks:
+    - name: web
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - drone-data:/var/lib/drone
+    labels:
+      traefik.enable: 'true'
+      traefik.frontend.rule: 'Host:{{ url.split("/")[2] }}'
+      traefik.frontend.headers.SSLRedirect: 'true'
+      traefik.port: '80'
+    env:
+      DRONE_GITHUB: '{% if github_id %}true{% endif %}'
+      DRONE_GITHUB_SERVER: '{{ github_url }}'
+      DRONE_GITHUB_CLIENT_ID: '{{ github_id }}'
+      DRONE_GITHUB_CLIENT_SECRET: '{{ github_secret }}'
+      DRONE_GITLAB_SERVER: '{{ gitlab_url }}'
+      DRONE_GITLAB_CLIENT_ID: '{{ gitlab_id }}'
+      DRONE_GITLAB_CLIENT_SECRET: '{{ gitlab_secret }}'
+      DRONE_GITLAB: '{% if gitlab_id %}true{% endif %}'
+      DRONE_RUNNER_CAPACITY: '2'
+      DRONE_SERVER_HOST: '{{ url.split("/")[2] }}'
+      DRONE_SERVER_PROTO: '{{ url.split(":")[0] }}'
+      DRONE_TLS_AUTOCERT: 'false'
+      DRONE_OPEN: '{{ open }}'
+      DRONE_DEBUG: 'true'
