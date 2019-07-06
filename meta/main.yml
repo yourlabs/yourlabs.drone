@@ -1,9 +1,9 @@
 galaxy_info:
   author: James Pic
-  role_name: timer
-  description: Ansible or BigSudo role to deploy a systemd unit
+  role_name: drone
+  description: Ansible or BigSudo role to deploy a Drone-CI server
   company: YourLabs
-  issue_tracker_url: https://yourlabs.io/oss/yourlabs.systemd
+  issue_tracker_url: https://yourlabs.io/oss/yourlabs.drone
   license: MIT
   min_ansible_version: 2.4
   platforms:
