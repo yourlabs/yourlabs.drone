@@ -1,10 +1,12 @@
 ---
-open: '{{ drone_open|default("false") }}'
+open: '{{ ansible_facts.ansible_local.yourlabs_drone.open|default("false") }}'
 
-github_id: '{{ drone_github_id|default("") }}'
-github_secret: '{{ drone_github_secret|default("") }}'
-github_url: '{{ drone_github_url|default("https://github.com") }}'
+github_id: '{{ ansible_facts.ansible_local.yourlabs_drone.github_id|default("") }}'
+github_secret: '{{ ansible_facts.ansible_local.yourlabs_drone.github_secret|default("") }}'
+github_url: '{{ ansible_facts.ansible_local.yourlabs_drone.github_url|default("https://github.com") }}'
 
-gitlab_id: '{{ drone_gitlab_id|default("") }}'
-gitlab_secret: '{{ drone_gitlab_secret|default("") }}'
-gitlab_url: '{{ drone_gitlab_url|default("https://gitlab.com") }}'
+gitlab_id: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_id|default("") }}'
+gitlab_secret: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_secret|default("") }}'
+gitlab_url: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_url|default("https://gitlab.com") }}'
+
+gitea_url: '{{ ansible_facts.ansible_local.yourlabs_drone.gitea_url|default("") }}'

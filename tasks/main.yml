@@ -1,29 +1,10 @@
 ---
 # Ansible or BigSudo role to setup Drone-CI
+
 - name: Ensure traefik was setup once on this host
-  include_role: name=yourlabs.roleonce
+  include_role: name=yourlabs.remember tasks_from=require_once
   vars:
-    rolenames: [yourlabs.traefik]
-
-- name: Save facts for further runs
-  shell:
-    cmd: |
-      cat > /etc/ansible/facts.d/yourlabs_drone.fact << EOF
-      #!/bin/sh
-      echo '{
-        "drone_open": "{{ open }}",
-        "drone_github_id": "{{ github_id }}",
-        "drone_github_secret": "{{ github_secret }}",
-        "drone_github_url": "{{ github_url }}",
-        "drone_gitlab_id": "{{ gitlab_id }}",
-        "drone_gitlab_secret": "{{ gitlab_secret }}",
-        "drone_gitlab_url": "{{ gitlab_url }}",
-        "yourlabs_drone": "installed"
-      }'
-      EOF
-
-- name: Make facts executable for Ansible
-  file: path=/etc/ansible/facts.d/yourlabs_drone.fact mode=0755
+    rolename: yourlabs.traefik
 
 - name: Start docker instance
   docker_container:
@@ -44,6 +25,7 @@
       traefik.frontend.headers.SSLRedirect: 'true'
       traefik.port: '80'
     env:
+      DRONE_GITEA_SERVER: '{{ gitea_url }}'
       DRONE_GITHUB: '{% if github_id %}true{% endif %}'
       DRONE_GITHUB_SERVER: '{{ github_url }}'
       DRONE_GITHUB_CLIENT_ID: '{{ github_id }}'
@@ -58,3 +40,18 @@
       DRONE_TLS_AUTOCERT: 'false'
       DRONE_OPEN: '{{ open }}'
       DRONE_DEBUG: 'true'
+
+- name: Save facts for future executions
+  include_role: name=yourlabs.remember tasks_from=success
+  vars:
+    rolename: yourlabs.drone
+    varnames:
+    - open
+    - github_id
+    - github_secret
+    - github_url
+    - gitlab_id
+    - gitlab_secret
+    - gitlab_url
+    - gitea_url
+    - url
