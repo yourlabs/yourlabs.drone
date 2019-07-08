@@ -1,12 +1,11 @@
 ---
-open: '{{ ansible_facts.ansible_local.yourlabs_drone.open|default("false") }}'
-
-github_id: '{{ ansible_facts.ansible_local.yourlabs_drone.github_id|default("") }}'
-github_secret: '{{ ansible_facts.ansible_local.yourlabs_drone.github_secret|default("") }}'
-github_url: '{{ ansible_facts.ansible_local.yourlabs_drone.github_url|default("https://github.com") }}'
-
-gitlab_id: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_id|default("") }}'
-gitlab_secret: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_secret|default("") }}'
-gitlab_url: '{{ ansible_facts.ansible_local.yourlabs_drone.gitlab_url|default("https://gitlab.com") }}'
-
-gitea_url: '{{ ansible_facts.ansible_local.yourlabs_drone.gitea_url|default("") }}'
+rolename: yourlabs.drone
+questions:
+  url: What is the drone full URL you are deploying ?
+  open: Should the drone instance be open ?
+  gitlab_url: What is the gitlab full url ?
+  gitlab_id: What is the gitlab app id ?
+  gitlab_secret: What is the gitlab secret ?
+defaults:
+  gitlab_url: https://gitlab.com
+  open: 'false'

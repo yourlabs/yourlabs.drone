@@ -6,10 +6,13 @@
   vars:
     rolename: yourlabs.traefik
 
+- include_role: name=yourlabs.remember tasks_from=questions
+
 - name: Start docker instance
   docker_container:
     name: drone
     image: drone/drone:1
+    pull: true
     restart: true
     restart_policy: unless-stopped
     log_driver: journald
@@ -25,11 +28,6 @@
       traefik.frontend.headers.SSLRedirect: 'true'
       traefik.port: '80'
     env:
-      DRONE_GITEA_SERVER: '{{ gitea_url }}'
-      DRONE_GITHUB: '{% if github_id %}true{% endif %}'
-      DRONE_GITHUB_SERVER: '{{ github_url }}'
-      DRONE_GITHUB_CLIENT_ID: '{{ github_id }}'
-      DRONE_GITHUB_CLIENT_SECRET: '{{ github_secret }}'
       DRONE_GITLAB_SERVER: '{{ gitlab_url }}'
       DRONE_GITLAB_CLIENT_ID: '{{ gitlab_id }}'
       DRONE_GITLAB_CLIENT_SECRET: '{{ gitlab_secret }}'
@@ -38,20 +36,7 @@
       DRONE_SERVER_HOST: '{{ url.split("/")[2] }}'
       DRONE_SERVER_PROTO: '{{ url.split(":")[0] }}'
       DRONE_TLS_AUTOCERT: 'false'
-      DRONE_OPEN: '{{ open }}'
+      DRONE_OPEN: '{% if open and open.lower() != "false" %}true{% else %}false{% endif %}'
       DRONE_DEBUG: 'true'
 
-- name: Save facts for future executions
-  include_role: name=yourlabs.remember tasks_from=success
-  vars:
-    rolename: yourlabs.drone
-    varnames:
-    - open
-    - github_id
-    - github_secret
-    - github_url
-    - gitlab_id
-    - gitlab_secret
-    - gitlab_url
-    - gitea_url
-    - url
+- include_role: name=yourlabs.remember tasks_from=success
