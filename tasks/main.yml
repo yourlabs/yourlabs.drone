@@ -1,42 +1,65 @@
 ---
 # Ansible or BigSudo role to setup Drone-CI
 
-- name: Ensure traefik was setup once on this host
+- include_role: name=yourlabs.remember
+
+- name: Ensure docker was setup once on this host
   include_role: name=yourlabs.remember tasks_from=require_once
-  vars:
-    rolename: yourlabs.traefik
+  vars: {rolename: yourlabs.docker}
 
-- include_role: name=yourlabs.remember tasks_from=questions
-
-- name: Start docker instance
-  docker_container:
-    name: drone
-    image: drone/drone:1
-    pull: true
-    restart: true
-    restart_policy: unless-stopped
-    log_driver: journald
-    exposed_ports: 80
-    networks:
-    - name: web
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    - drone-data:/var/lib/drone
-    labels:
-      traefik.enable: 'true'
-      traefik.frontend.rule: 'Host:{{ url.split("/")[2] }}'
-      traefik.frontend.headers.SSLRedirect: 'true'
-      traefik.port: '80'
-    env:
-      DRONE_GITLAB_SERVER: '{{ gitlab_url }}'
-      DRONE_GITLAB_CLIENT_ID: '{{ gitlab_id }}'
-      DRONE_GITLAB_CLIENT_SECRET: '{{ gitlab_secret }}'
-      DRONE_GITLAB: '{% if gitlab_id %}true{% endif %}'
+- name: Setting up drone base environment variables
+  set_fact:
+    drone_env:
+      VIRTUAL_HOST: '{{ url.split("/")[2] }}'
       DRONE_RUNNER_CAPACITY: '2'
       DRONE_SERVER_HOST: '{{ url.split("/")[2] }}'
       DRONE_SERVER_PROTO: '{{ url.split(":")[0] }}'
       DRONE_TLS_AUTOCERT: 'false'
-      DRONE_OPEN: '{% if open and open.lower() != "false" %}true{% else %}false{% endif %}'
+      DRONE_OPEN: '{% if open %}true{% else %}false{% endif %}'
       DRONE_DEBUG: 'true'
+
+- name: Setting up github environment variables
+  when: backend == 'github'
+  loop_control:
+    loop_var: drone_item
+  with_dict:
+    DRONE_GITHUB_SERVER: '{{ github_url }}'
+    DRONE_GITHUB_CLIENT_ID: '{{ github_id }}'
+    DRONE_GITHUB_CLIENT_SECRET: '{{ github_secret }}'
+  set_fact:
+    drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
+
+- name: Setting up gitlab environment variables
+  when: backend == 'gitlab'
+  loop_control:
+    loop_var: drone_item
+  with_dict:
+    DRONE_GITLAB_SERVER: '{{ gitlab_url }}'
+    DRONE_GITLAB_CLIENT_ID: '{{ gitlab_id }}'
+    DRONE_GITLAB_CLIENT_SECRET: '{{ gitlab_secret }}'
+  set_fact:
+    drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
+
+- name: Make home directory
+  file:
+    path: '{{ home }}'
+    state: directory
+    owner: root
+    mode: '0755'
+
+- name: Upload docker-compose.yml
+  copy:
+    src: '{{ role_path }}/docker-compose.yml'
+    dest: '{{ home }}/docker-compose.yml'
+
+- name: Upload docker-compose.override.yml
+  template:
+    src: '{{ role_path }}/docker-compose.override.template.yml'
+    dest: '{{ home }}/docker-compose.override.yml'
+
+- name: Start {{ home }}/docker-compose.yml
+  docker_compose:
+    project_src: '{{ home }}'
+    restarted: yes
 
 - include_role: name=yourlabs.remember tasks_from=success
