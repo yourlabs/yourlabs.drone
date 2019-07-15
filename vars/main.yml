@@ -1,10 +1,6 @@
 ---
-rolename: yourlabs.drone
+factname: yourlabs_drone_{{ home.replace('/', '_') }}
 rolevars:
-- name: home
-  question: What home directory for this deployment ?
-  default: /home/drone
-  regexp: '^/'
 - name: url
   question: What is the drone full URL you are deploying ?
 - name: open
@@ -27,6 +23,8 @@ rolevars:
   question: What is the github id ?
 - name: github_secret
   question: What is the github secret ?
+- name: letsencrypt_email
+  question: If you want LETSENCRYPT_EMAIL, type it now
 
 github_secret_when: '{{ backend == "github" }}'
 github_url_when: '{{ backend == "github" }}'

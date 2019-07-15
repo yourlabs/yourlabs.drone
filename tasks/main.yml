@@ -1,6 +1,10 @@
 ---
 # Ansible or BigSudo role to setup Drone-CI
 
+- set_fact:
+    home: /home/drone
+  when: home is not defined
+
 - include_role: name=yourlabs.remember
 
 - name: Ensure docker was setup once on this host
@@ -40,6 +44,16 @@
   set_fact:
     drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
 
+- name: Setting up letsencrypt variables
+  when: letsencrypt_email|length
+  loop_control:
+    loop_var: drone_item
+  with_dict:
+    LETSENCRYPT_HOST: '{{ url.split("/")[2] }}'
+    LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+  set_fact:
+    drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
+
 - name: Make home directory
   file:
     path: '{{ home }}'
@@ -63,3 +77,6 @@
     restarted: yes
 
 - include_role: name=yourlabs.remember tasks_from=success
+  vars:
+    varnames:
+    - letsencrypt_email
