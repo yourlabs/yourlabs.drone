@@ -4,7 +4,7 @@ services:
   drone:
     labels:
       traefik.enable: 'true'
-      traefik.frontend.rule: 'Host:{{ url.split("/")[2] }}'
+      traefik.frontend.rule: 'Host: {{ url.split("/")[2] }}'
       traefik.frontend.headers.SSLRedirect: 'true'
       traefik.port: '80'
     environment:
