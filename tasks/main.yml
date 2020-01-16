@@ -66,11 +66,6 @@
     src: '{{ role_path }}/docker-compose.yml'
     dest: '{{ home }}/docker-compose.yml'
 
-- name: Upload docker-compose.override.yml
-  template:
-    src: '{{ role_path }}/docker-compose.override.template.yml'
-    dest: '{{ home }}/docker-compose.override.yml'
-
 - name: Start {{ home }}/docker-compose.yml
   docker_compose:
     project_src: '{{ home }}'
