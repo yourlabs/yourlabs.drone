@@ -1,34 +1,61 @@
 ---
-factname: yourlabs_drone_{{ home.replace('/', '_') }}
-rolevars:
+remember_fact: yourlabs.drone
+remember:
 - name: url
   question: What is the drone full URL you are deploying ?
-- name: open
-  question: Should the drone instance be open ?
-  default: 'false'
+  type: string
+
+- name: admin
+  question: What is your github username (will be drone admin)
+  type: string
+
+- name: filter
+  question: |
+    Do you want filtering users ?
+    Only filtered users and organisation's users will be allow to register
+  default: "false"
+  type: string
+
+- name: filtered_orgs
+  question: Which orgs do you want to allow ? (comma spareted if multiple)
+  type: string
+  when: '{{ filter == "true" }}'
+
+- name: filtered_users
+  question: Which users do you want to allow ? (comma spareted if multiple)
+  type: string
+  when: '{{ filter == "true" }}'
+
 - name: backend
   question: What backend for this drone deployment ?
   regexp: github|gitlab
+
 - name: gitlab_url
   question: What is the gitlab full url ?
   default: https://gitlab.com
+  when: '{{ backend == "gitlab" }}'
+
 - name: gitlab_id
   question: What is the gitlab app id ?
+  when: '{{ backend == "gitlab" }}'
+
 - name: gitlab_secret
   question: What is the gitlab secret ?
+  when: '{{ backend == "gitlab" }}'
+
 - name: github_url
   question: What is the github server full url ?
   default: https://github.com
+  when: '{{ backend == "github" }}'
+
 - name: github_id
   question: What is the github id ?
+  when: '{{ backend == "github" }}'
+
 - name: github_secret
   question: What is the github secret ?
-- name: letsencrypt_email
-  question: If you want LETSENCRYPT_EMAIL, type it now
+  when: '{{ backend == "github" }}'
 
-github_secret_when: '{{ backend == "github" }}'
-github_url_when: '{{ backend == "github" }}'
-github_id_when: '{{ backend == "github" }}'
-gitlab_secret_when: '{{ backend == "gitlab" }}'
-gitlab_id_when: '{{ backend == "gitlab" }}'
-gitlab_url_when: '{{ backend == "gitlab" }}'
+- name: rpc_pass
+  question: What is RPC password ? (use for server <-> runner)
+  type: string
