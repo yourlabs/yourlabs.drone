@@ -17,10 +17,9 @@
       VIRTUAL_HOST: '{{ url.split("/")[2] }}'
       DRONE_RUNNER_CAPACITY: '2'
       DRONE_SERVER_HOST: '{{ url.split("/")[2] }}'
-      DRONE_SERVER_PROTO: '{{ url.split(":")[0] }}'
+      DRONE_SERVER_PROTO: http
       DRONE_TLS_AUTOCERT: 'false'
-      DRONE_OPEN: '{% if open %}true{% else %}false{% endif %}'
-      DRONE_DEBUG: 'true'
+      DRONE_DEBUG: 'false'
 
 - name: Setting up github environment variables
   when: backend == 'github'
@@ -44,16 +43,6 @@
   set_fact:
     drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
 
-- name: Setting up letsencrypt variables
-  when: letsencrypt_email|length
-  loop_control:
-    loop_var: drone_item
-  with_dict:
-    LETSENCRYPT_HOST: '{{ url.split("/")[2] }}'
-    LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
-  set_fact:
-    drone_env: '{{ drone_env|combine({drone_item.key: drone_item.value}) }}'
-
 - name: Make home directory
   file:
     path: '{{ home }}'
@@ -70,8 +59,3 @@
   docker_compose:
     project_src: '{{ home }}'
     restarted: yes
-
-- include_role: name=yourlabs.remember tasks_from=success
-  vars:
-    varnames:
-    - letsencrypt_email
