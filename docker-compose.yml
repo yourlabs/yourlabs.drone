@@ -11,7 +11,7 @@ services:
     - {{ key }}={{ value }}
 {% endfor %}
 {% if filter %}
-    - DRONE_USER_FILTER={{admin}},{{filtered_user}},{{filtered_orgs}}
+    - DRONE_USER_FILTER={{admin}}{% if filtered_users |length %},{{filtered_users}}{% endif %}{% if filtered_orgs |length %},{{filtered_orgs}}{% endif %}
 {% endif %}
 
     labels:
@@ -19,16 +19,15 @@ services:
     - trafik.docker.network=web
     - traefik.http.routers.drone.entryPoints=web
     - traefik.http.routers.drone.rule=Host(`{{ url.split("/")[2] }}`)
-    - "traefik.http.middlewares.drone-redirect.redirectregex.regex=^https?://${HOST}/(.*)"
-    - "traefik.http.middlewares.drone-redirect.redirectregex.replacement=https://${HOST}/$${1}"
-    - "traefik.http.routers.drone-ssl.middlewares=drone-redirect, drone-auth"
-    - "traefik.http.routers.drone.middlewares=drone-redirect, drone-auth"
+    - traefik.http.middlewares.drone-redirect.redirectregex.regex=^https?://{{ url.split("/")[2] }}/(.*)
+    - traefik.http.middlewares.drone-redirect.redirectregex.replacement=https://{{ url.split("/")[2] }}/$${1}
+    - traefik.http.routers.drone-ssl.middlewares=drone-redirect
+    - traefik.http.routers.drone.middlewares=drone-redirect
     - traefik.http.routers.drone-ssl.rule=host(`{{ url.split("/")[2] }}`)
     - traefik.http.routers.drone-ssl.tls.certResolver=leresolver
     networks:
     - web
     - dronet
-
 
   drone-runner:
     image: drone/drone-runner-docker
@@ -41,11 +40,10 @@ services:
       - "3000"
     environment:
       - DRONE_RPC_PROTO=http
-      - DRONE_RPC_HOST='drone:80'
+      - DRONE_RPC_HOST=drone
       - DRONE_RPC_SECRET={{ rpc_pass }}
       - DRONE_RUNNER_CAPACITY=10
     networks:
-    - dronet
     - web
 
 networks:

@@ -7,10 +7,6 @@
 
 - include_role: name=yourlabs.remember
 
-- name: Ensure docker was setup once on this host
-  include_role: name=yourlabs.remember tasks_from=require_once
-  vars: {rolename: yourlabs.docker}
-
 - name: Setting up drone base environment variables
   set_fact:
     drone_env:
@@ -20,6 +16,8 @@
       DRONE_SERVER_PROTO: http
       DRONE_TLS_AUTOCERT: 'false'
       DRONE_DEBUG: 'false'
+      DRONE_RPC_SECRET: '{{ rpc_pass }}'
+      DRONE_USER_CREATE: 'username:{{admin}},admin:true'
 
 - name: Setting up github environment variables
   when: backend == 'github'
@@ -51,7 +49,7 @@
     mode: '0755'
 
 - name: Upload docker-compose.yml
-  copy:
+  template:
     src: '{{ role_path }}/docker-compose.yml'
     dest: '{{ home }}/docker-compose.yml'
 
