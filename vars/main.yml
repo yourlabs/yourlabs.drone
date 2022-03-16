@@ -11,51 +11,58 @@ remember:
 
 - name: filter
   question: |
-    Do you want filtering users ?
-    Only filtered users and organisation's users will be allow to register
-  default: "false"
-  type: string
-
-- name: filtered_orgs
-  question: Which orgs do you want to allow ? (comma spareted if multiple)
-  type: string
-  when: '{{ filter == "true" }}'
+    Do you want to filter users ? (yes/no)
+    Only filtered users and organisation's users will be allowed to register
+  type: bool
+  default: True
 
 - name: filtered_users
   question: Which users do you want to allow ? (comma spareted if multiple)
-  type: string
-  when: '{{ filter == "true" }}'
+  when: filter
+
+- name: filtered_orgs
+  question: Which orgs do you want to allow ? (comma spareted if multiple)
+  when: filter
 
 - name: backend
   question: What backend for this drone deployment ?
-  regexp: github|gitlab
+  regexp: '^github$|^gitlab$'
 
 - name: gitlab_url
   question: What is the gitlab full url ?
   default: https://gitlab.com
-  when: '{{ backend == "gitlab" }}'
+  when: backend == "gitlab"
 
 - name: gitlab_id
   question: What is the gitlab app id ?
-  when: '{{ backend == "gitlab" }}'
+  when: backend == "gitlab"
 
 - name: gitlab_secret
   question: What is the gitlab secret ?
-  when: '{{ backend == "gitlab" }}'
+  when: backend == "gitlab"
 
 - name: github_url
   question: What is the github server full url ?
   default: https://github.com
-  when: '{{ backend == "github" }}'
+  when: backend == "github"
 
 - name: github_id
   question: What is the github id ?
-  when: '{{ backend == "github" }}'
+  when: backend == "github"
 
 - name: github_secret
   question: What is the github secret ?
-  when: '{{ backend == "github" }}'
+  when: backend == "github"
+
+- name: database
+  question: which database you want to use ? (sqlite/postgres)
+  regexp: '^postgres$|^sqlite$'
+  default: sqlite
+
+- name: secrets_enc
+  question: do you want to encrypt secrets in the database ? (yes/no)
+  default: True
 
 - name: rpc_pass
-  question: What is RPC password ? (use for server <-> runner)
+  question: What is the RPC password ? (use for server <-> runner)
   type: string

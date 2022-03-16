@@ -10,14 +10,32 @@
 - name: Setting up drone base environment variables
   set_fact:
     drone_env:
-      VIRTUAL_HOST: '{{ url.split("/")[2] }}'
-      DRONE_RUNNER_CAPACITY: '2'
       DRONE_SERVER_HOST: '{{ url.split("/")[2] }}'
       DRONE_SERVER_PROTO: http
       DRONE_TLS_AUTOCERT: 'false'
       DRONE_DEBUG: 'false'
       DRONE_RPC_SECRET: '{{ rpc_pass }}'
       DRONE_USER_CREATE: 'username:{{admin}},admin:true'
+
+- name: Setting up postgres
+  when: database == "postgres"
+  loop_control:
+    loop_var: drone_database
+  with_dict:
+      DRONE_DATABASE_DRIVER: postgres
+      DRONE_DATABASE_DATASOURCE: postgres://drone:drone@postgres:5432/drone?sslmode=disable
+  set_fact:
+    drone_env: '{{ drone_env|combine({drone_database.key: drone_database.value}) }}'
+
+- name: Setting up secrets encryption in database
+  when: secrets_enc
+  loop_control:
+    loop_var: drone_dtb_secrets
+  with_dict:
+      DRONE_DATABASE_SECRET: "{{ lookup('community.general.random_string', special=false, length=32) }}"
+  set_fact:
+    drone_env: '{{ drone_env|combine({drone_dtb_secrets.key: drone_dtb_secrets.value}) }}'
+
 
 - name: Setting up github environment variables
   when: backend == 'github'
@@ -47,6 +65,15 @@
     state: directory
     owner: root
     mode: '0755'
+
+- name: Make home directory
+  when: database == "postgres"
+  file:
+    path: '{{ home }}/data/postgres'
+    state: directory
+    owner: root
+    mode: '0755'
+
 
 - name: Upload docker-compose.yml
   template:
